@@ -1,42 +1,42 @@
 object App {
     def main(args: Array[String]): Unit = {
-        println(new AParser("ab").Main.run().get)
+        println(new ABParser("ab").Main.run().get)
     }
 }
 
 import org.parboiled2._
 import shapeless._
 
-trait B
-
 trait A
 
-case class A2B(a: A) extends B
+trait B
 
 case class B2A(b: B) extends A
 
-class AParser(override val input: ParserInput) extends Parser {
+case class A2B(a: A) extends B
+
+class ABParser(override val input: ParserInput) extends Parser {
     def Main: Rule1[A] = rule {
-        ARule ~ AReduction
+        BRule ~ BReduction ~ B2ARule
     }
 
-    def ARule: Rule1[A] = rule {
-        push(new A {})
+    def BRule: Rule1[B] = rule {
+        push(new B {})
     }
 
-    def AReduction: Rule[A :: HNil, A :: HNil] = rule {
-        ((A2BConsumer | A2BRule) ~ B2AConsumer).*
+    def BReduction: Rule[B :: HNil, B :: HNil] = rule {
+        ((B2ACapture | B2ARule) ~ A2BCapture).*
     }
 
-    def A2BRule: Rule[A :: HNil, B :: HNil] = rule {
-        MATCH ~> A2B
+    def B2ARule: Rule[B :: HNil, A :: HNil] = rule {
+        MATCH ~> B2A
     }
 
-    def A2BConsumer: Rule[A :: HNil, B :: HNil] = rule {
-        str("a") ~> A2B
+    def B2ACapture: Rule[B :: HNil, A :: HNil] = rule {
+        str("a") ~> B2A
     }
 
-    def B2AConsumer: Rule[B :: HNil, A :: HNil] = rule {
-        str("b") ~> B2A
+    def A2BCapture: Rule[A :: HNil, B :: HNil] = rule {
+        str("b") ~> A2B
     }
 }
